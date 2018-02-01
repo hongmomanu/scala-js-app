@@ -23,6 +23,7 @@ import org.scalajs.dom.raw.Event
 
 
 import org.scalajs.dom.raw.HTMLButtonElement
+import tutorial.webapp.css.Button
 
 
 
@@ -40,13 +41,19 @@ object TutorialApp {
   @dom def comment = {
     <!-- 你看不见我 -->
   }
+
+  @dom def canvas = {
+    <canvas class="w-50 h-50"></canvas>
+  }
    
   @dom def table = {
     <div>
      现在时间：{ now.bind.toString } 哈哈
      { randomParagraph.bind }
       { comment.bind }
+      {canvas.bind}
       <button
+        class = {Button.rBtn}
         onclick={ event: Event =>
           data.get += Contact(Var("Yang Bo"), Var("yang.bo@rea-group.com"))
         }
