@@ -17,13 +17,32 @@ import com.thoughtworks.binding.Binding.Var
 import com.thoughtworks.binding.Binding.Vars
 import com.thoughtworks.binding.Binding
 import scala.scalajs.js.timers.setInterval
+import scala.scalajs.js.timers.setTimeout
 import org.scalajs.dom.raw.HTMLButtonElement
+import org.scalajs.dom.raw.HTMLCanvasElement
 import org.scalajs.dom.document
 import org.scalajs.dom.raw.Event
+import org.scalajs.dom.html
+import scala.scalajs.js
+import scala.scalajs.js.Dynamic.global
+import scala.scalajs.js.annotation._
 
 
-import org.scalajs.dom.raw.HTMLButtonElement
 import tutorial.webapp.css.Button
+
+
+@js.native
+@JSGlobal("window.paper.Point")
+class Point(val x: Int, val y: Int) extends js.Object {
+  def add(r: Point): Point = js.native
+}
+@js.native
+@JSGlobal("window.paper.Path")
+class Path extends  js.Object {
+  var strokeColor: String = js.native
+  def moveTo(p: Point): Unit = js.native
+  def lineTo(p: Point): Unit = js.native
+}
 
 
 
@@ -43,7 +62,9 @@ object TutorialApp {
   }
 
   @dom def canvas = {
-    <canvas class="w-50 h-50"></canvas>
+    var mycanvas = <canvas class="w-50 h-50"></canvas>
+    setTimeout(1000){makepaper(mycanvas)}
+    mycanvas
   }
    
   @dom def table = {
@@ -55,6 +76,7 @@ object TutorialApp {
       <button
         class = {Button.rBtn}
         onclick={ event: Event =>
+          
           data.get += Contact(Var("Yang Bo"), Var("yang.bo@rea-group.com"))
         }
       >
@@ -96,7 +118,25 @@ object TutorialApp {
   }
 
   def main(args: Array[String]): Unit = {
-    println("Hello world!")
     dom.render(document.body, table)
   }
+
+  
+  def makepaper(ca:html.Canvas): Unit  = {
+    global.window.paper.setup(ca)
+    
+    var path = new Path()
+		// Give the stroke a color
+		path.strokeColor = "black"
+		var start = new Point(10, 10)
+		// Move to start and draw a line from there
+		path.moveTo(start)
+		// Note that the plus operator on Point objects does not work
+		// in JavaScript. Instead, we need to call the add() function:
+		path.lineTo(start.add(new Point(100, 50)))
+		// Draw the view now:
+		global.window.paper.view.draw()
+
+  }
+
 }
