@@ -29,31 +29,53 @@ import scala.scalajs.js.annotation._
 
 
 import tutorial.webapp.css.Button
-
-
 @js.native
 @JSGlobal("window.paper.Point")
 class Point(val x: Int, val y: Int) extends js.Object {
   def add(r: Point): Point = js.native
 }
 @js.native
+@JSGlobal("window.paper.Tool")
+class Tool() extends js.Object {
+  var onMouseDown: js.Function1[ToolEvent, Unit] = js.native  
+  var onMouseDrag: js.Function1[ToolEvent, Unit] = js.native  
+
+}
+
+@js.native
+trait ToolEvent extends js.Object {
+  val `type`: String = js.native
+  val point: Point = js.native
+  val lastPoint: Point = js.native
+  val downPoint: Point = js.native
+  val middlePoint: Point = js.native
+  val delta: Point = js.native
+  val count: Int = js.native
+  override def toString(): String = js.native
+  val modifiers: js.Dynamic = js.native
+}
+
+@js.native
 @JSGlobal("window.paper.Path")
-class Path extends  js.Object {
+class Path extends js.Object {
   var strokeColor: String = js.native
   def moveTo(p: Point): Unit = js.native
   def lineTo(p: Point): Unit = js.native
+  def add(p: Point): Unit = js.native
 }
 
-
-
+class PaperData   {
+  var path: Path = null
+}
 
 object TutorialApp {
-  
+
   case class Contact(name: Var[String], email: Var[String])
 
   val data = Vars.empty[Contact]
-  val now = Var(new Date)
+  val now = Var(new Date )
   setInterval(1000) { now := new Date }
+  val paperobj = new PaperData()
   @dom def randomParagraph = {
     <p>生成一个随机数： { math.random.toString }</p>
   }
@@ -63,16 +85,20 @@ object TutorialApp {
 
   @dom def canvas = {
     var mycanvas = <canvas class="w-50 h-50"></canvas>
-    setTimeout(1000){makepaper(mycanvas)}
+    setTimeout(1000) { makepaper(mycanvas) }
     mycanvas
   }
-   
+  @dom def drawbutton = {
+    <button onclick={event: Event => makedraw()}>add</button>
+  }
+
   @dom def table = {
     <div>
      现在时间：{ now.bind.toString } 哈哈
      { randomParagraph.bind }
       { comment.bind }
       {canvas.bind}
+      {drawbutton.bind}
       <button
         class = {Button.rBtn}
         onclick={ event: Event =>
@@ -121,21 +147,40 @@ object TutorialApp {
     dom.render(document.body, table)
   }
 
-  
-  def makepaper(ca:html.Canvas): Unit  = {
+  def mouseDown(event:ToolEvent): Unit = {
+      paperobj.path = new Path()
+			paperobj.path.strokeColor = "black"
+			paperobj.path.add(event.point)
+  }
+  def mouseDrag(event:ToolEvent): Unit = {
+    paperobj.path.add(event.point)
+  }
+
+  def makedraw(): Unit = {
+    var tool = new Tool()
+
+		// Define a mousedown and mousedrag handler
+		tool.onMouseDown = mouseDown
+
+		tool.onMouseDrag = mouseDrag
+    var h = println("hello")
+  }
+
+  def makepaper(ca: html.Canvas): Unit = {
     global.window.paper.setup(ca)
-    
+
     var path = new Path()
-		// Give the stroke a color
-		path.strokeColor = "black"
-		var start = new Point(10, 10)
-		// Move to start and draw a line from there
-		path.moveTo(start)
-		// Note that the plus operator on Point objects does not work
-		// in JavaScript. Instead, we need to call the add() function:
-		path.lineTo(start.add(new Point(100, 50)))
-		// Draw the view now:
-		global.window.paper.view.draw()
+    paperobj.path = path
+    // Give the stroke a color
+    path.strokeColor = "black"
+    var start = new Point(10, 10)
+    // Move to start and draw a line from there
+    path.moveTo(start)
+    // Note that the plus operator on Point objects does not work
+    // in JavaScript. Instead, we need to call the add() function:
+    path.lineTo(start.add(new Point(100, 50)))
+    // Draw the view now:
+    global.window.paper.view.draw()
 
   }
 
